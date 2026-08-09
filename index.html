@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event-Driven Banking Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--success));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .history-section {
+      grid-column: 1 / -1;
+    }
+
+    .balance-display {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .balance-amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .timeline {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .timeline-item {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .event-type-badge {
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .type-ACCOUNT_OPENED { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+    .type-MONEY_DEPOSITED { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .type-MONEY_WITHDRAWN { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .type-TRANSFER_COMPLETED { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+
+    .event-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .log-container {
+      background: #090d16;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      max-height: 200px;
+      overflow-y: auto;
+      color: #38bdf8;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      background: #1e293b;
+      color: white;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      display: block;
+      animation: slideIn 0.3s forwards;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">Ax</div>
+        <div>
+          <h1>Event-Driven Banking Portal</h1>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Axon Framework & Event Sourcing Dashboard</p>
+        </div>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot"></div> API Online (localhost:8080)
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Open Account Card -->
+      <div class="card">
+        <div class="card-title">✨ Create Account</div>
+        <div class="form-group">
+          <label for="customerName">Customer Name</label>
+          <input type="text" id="customerName" placeholder="e.g. Alice Smith" value="Alice">
+        </div>
+        <div class="form-group">
+          <label for="openingBalance">Opening Balance ($)</label>
+          <input type="number" id="openingBalance" placeholder="1000.0" value="1000">
+        </div>
+        <button onclick="openAccount()">Open Account</button>
+      </div>
+
+      <!-- Deposit Money Card -->
+      <div class="card">
+        <div class="card-title">💵 Deposit Money</div>
+        <div class="form-group">
+          <label for="depositAccountId">Account ID</label>
+          <input type="text" id="depositAccountId" placeholder="Enter Account ID">
+        </div>
+        <div class="form-group">
+          <label for="depositAmount">Amount ($)</label>
+          <input type="number" id="depositAmount" placeholder="500.0" value="500">
+        </div>
+        <button onclick="depositMoney()" style="background: var(--success);">Deposit Money</button>
+      </div>
+
+      <!-- Withdraw Money Card -->
+      <div class="card">
+        <div class="card-title">💸 Withdraw Money</div>
+        <div class="form-group">
+          <label for="withdrawAccountId">Account ID</label>
+          <input type="text" id="withdrawAccountId" placeholder="Enter Account ID">
+        </div>
+        <div class="form-group">
+          <label for="withdrawAmount">Amount ($)</label>
+          <input type="number" id="withdrawAmount" placeholder="200.0" value="200">
+        </div>
+        <button onclick="withdrawMoney()" style="background: var(--warning); color: #000;">Withdraw Money</button>
+      </div>
+
+      <!-- Transfer Money Card -->
+      <div class="card">
+        <div class="card-title">🔄 Transfer Money</div>
+        <div class="form-group">
+          <label for="transferSourceId">Source Account ID</label>
+          <input type="text" id="transferSourceId" placeholder="Source Account ID">
+        </div>
+        <div class="form-group">
+          <label for="transferDestId">Destination Account ID</label>
+          <input type="text" id="transferDestId" placeholder="Destination Account ID">
+        </div>
+        <div class="form-group">
+          <label for="transferAmount">Amount ($)</label>
+          <input type="number" id="transferAmount" placeholder="300.0" value="300">
+        </div>
+        <button onclick="transferMoney()" style="background: #a855f7;">Transfer Money</button>
+      </div>
+    </div>
+
+    <!-- Transaction History & Read Model Section -->
+    <div class="grid">
+      <div class="card history-section">
+        <div class="card-title" style="justify-content: space-between;">
+          <span>📜 Account Event Store & Transaction History</span>
+          <div style="display: flex; gap: 0.5rem; width: 50%;">
+            <input type="text" id="historyAccountId" placeholder="Enter Account ID to fetch history">
+            <button onclick="fetchHistory()" style="width: auto; padding: 0.75rem 1.5rem;">Fetch History</button>
+          </div>
+        </div>
+
+        <div id="balanceContainer" class="balance-display" style="display: none;">
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Current Read Model State</div>
+            <div id="customerNameDisplay" style="font-weight: 600;">-</div>
+          </div>
+          <div class="balance-amount" id="balanceDisplay">$0.00</div>
+        </div>
+
+        <div id="timeline" class="timeline">
+          <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+            Enter an Account ID above to load its event stream history from the Axon Event Store.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Activity Console Log -->
+    <div class="card">
+      <div class="card-title">🖥️ Live API Request Log</div>
+      <div id="log" class="log-container">System initialized. Ready to execute commands...</div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const baseUrl = window.location.origin.startsWith('file:') ? 'http://localhost:8080' : window.location.origin;
+
+    function log(msg) {
+      const logDiv = document.getElementById('log');
+      const time = new Date().toLocaleTimeString();
+      logDiv.innerHTML = `[${time}] ${msg}<br>` + logDiv.innerHTML;
+    }
+
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.innerText = message;
+      toast.style.borderColor = isError ? 'var(--danger)' : 'var(--success)';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    function updateAllAccountInputs(accountId) {
+      document.getElementById('depositAccountId').value = accountId;
+      document.getElementById('withdrawAccountId').value = accountId;
+      document.getElementById('transferSourceId').value = accountId;
+      document.getElementById('historyAccountId').value = accountId;
+    }
+
+    async function openAccount() {
+      const name = document.getElementById('customerName').value;
+      const balance = parseFloat(document.getElementById('openingBalance').value);
+
+      if (!name || isNaN(balance)) {
+        showToast('Please provide valid name and balance', true);
+        return;
+      }
+
+      try {
+        log(`POST /accounts/open -> Name: ${name}, Balance: $${balance}`);
+        const res = await fetch(`${baseUrl}/accounts/open`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerName: name, openingBalance: balance })
+        });
+        const text = await res.text();
+
+        if (res.ok) {
+          showToast(text);
+          log(`Response: ${text}`);
+          // Extract Account ID if present
+          const match = text.match(/Account ID:\s*([a-f0-9\-]+)/i);
+          if (match && match[1]) {
+            updateAllAccountInputs(match[1]);
+            fetchHistory();
+          }
+        } else {
+          showToast(text, true);
+          log(`Error Response: ${text}`);
+        }
+      } catch (err) {
+        showToast('Failed to connect to API server', true);
+        log(`Network Error: ${err.message}`);
+      }
+    }
+
+    async function depositMoney() {
+      const accountId = document.getElementById('depositAccountId').value;
+      const amount = parseFloat(document.getElementById('depositAmount').value);
+
+      if (!accountId || isNaN(amount)) {
+        showToast('Please provide valid Account ID and Amount', true);
+        return;
+      }
+
+      try {
+        log(`POST /accounts/deposit -> ID: ${accountId}, Amount: $${amount}`);
+        const res = await fetch(`${baseUrl}/accounts/deposit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, amount })
+        });
+        const text = await res.text();
+        showToast(text, !res.ok);
+        log(`Response: ${text}`);
+        if (res.ok) fetchHistory();
+      } catch (err) {
+        showToast('Failed to execute deposit', true);
+      }
+    }
+
+    async function withdrawMoney() {
+      const accountId = document.getElementById('withdrawAccountId').value;
+      const amount = parseFloat(document.getElementById('withdrawAmount').value);
+
+      if (!accountId || isNaN(amount)) {
+        showToast('Please provide valid Account ID and Amount', true);
+        return;
+      }
+
+      try {
+        log(`POST /accounts/withdraw -> ID: ${accountId}, Amount: $${amount}`);
+        const res = await fetch(`${baseUrl}/accounts/withdraw`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, amount })
+        });
+        const text = await res.text();
+        showToast(text, !res.ok);
+        log(`Response: ${text}`);
+        if (res.ok) fetchHistory();
+      } catch (err) {
+        showToast('Failed to execute withdrawal', true);
+      }
+    }
+
+    async function transferMoney() {
+      const sourceAccountId = document.getElementById('transferSourceId').value;
+      const destinationAccountId = document.getElementById('transferDestId').value;
+      const amount = parseFloat(document.getElementById('transferAmount').value);
+
+      if (!sourceAccountId || !destinationAccountId || isNaN(amount)) {
+        showToast('Please provide valid Source, Destination, and Amount', true);
+        return;
+      }
+
+      try {
+        log(`POST /accounts/transfer -> ${sourceAccountId} => ${destinationAccountId} ($${amount})`);
+        const res = await fetch(`${baseUrl}/accounts/transfer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourceAccountId, destinationAccountId, amount })
+        });
+        const text = await res.text();
+        showToast(text, !res.ok);
+        log(`Response: ${text}`);
+        if (res.ok) fetchHistory();
+      } catch (err) {
+        showToast('Failed to execute transfer', true);
+      }
+    }
+
+    async function fetchHistory() {
+      const accountId = document.getElementById('historyAccountId').value;
+      if (!accountId) {
+        showToast('Enter Account ID to fetch history', true);
+        return;
+      }
+
+      // Fetch Current State
+      try {
+        const stateRes = await fetch(`${baseUrl}/accounts/${accountId}`);
+        if (stateRes.ok) {
+          const account = await stateRes.json();
+          document.getElementById('balanceContainer').style.display = 'flex';
+          document.getElementById('customerNameDisplay').innerText = `Customer: ${account.customerName}`;
+          document.getElementById('balanceDisplay').innerText = `$${account.balance.toFixed(2)}`;
+        } else {
+          document.getElementById('balanceContainer').style.display = 'none';
+        }
+      } catch (e) {
+        document.getElementById('balanceContainer').style.display = 'none';
+      }
+
+      // Fetch Event Store Transaction History
+      try {
+        log(`GET /accounts/${accountId}/transactions`);
+        const res = await fetch(`${baseUrl}/accounts/${accountId}/transactions`);
+        
+        if (!res.ok) {
+          const errText = await res.text();
+          showToast(errText, true);
+          document.getElementById('timeline').innerHTML = `<p style="color: var(--danger); text-align: center;">${errText}</p>`;
+          return;
+        }
+
+        const events = await res.json();
+        log(`Received ${events.length} event(s) from Axon Event Store.`);
+
+        const timeline = document.getElementById('timeline');
+        if (events.length === 0) {
+          timeline.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 1rem;">No transactions found for this account.</p>';
+          return;
+        }
+
+        timeline.innerHTML = events.map((ev, index) => `
+          <div class="timeline-item">
+            <div>
+              <span class="event-type-badge type-${ev.eventType}">${index + 1}. ${ev.eventType}</span>
+              <div class="event-meta">
+                Event ID: ${ev.eventId} <br>
+                Timestamp: ${new Date(ev.timestamp).toLocaleString()}
+                ${ev.transferId ? `<br>Transfer ID: ${ev.transferId}` : ''}
+              </div>
+            </div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: ${ev.eventType.includes('WITHDRAW') ? 'var(--warning)' : 'var(--success)'};">
+              ${ev.eventType.includes('WITHDRAW') ? '-' : '+'}$${ev.amount ? ev.amount.toFixed(2) : '0.00'}
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        showToast('Failed to fetch history', true);
+        log(`Fetch Error: ${err.message}`);
+      }
+    }
+  </script>
+</body>
+</html>
