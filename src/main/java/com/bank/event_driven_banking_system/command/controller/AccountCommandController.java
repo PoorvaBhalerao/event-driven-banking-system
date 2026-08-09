@@ -5,12 +5,14 @@ import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
 import com.bank.event_driven_banking_system.command.commands.TransferMoneyCommand;
 import com.bank.event_driven_banking_system.command.commands.WithdrawMoneyCommand;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/accounts")
 public class AccountCommandController {
