@@ -2,6 +2,7 @@ package com.bank.event_driven_banking_system.query.projection;
 
 import com.bank.event_driven_banking_system.command.events.AccountOpenedEvent;
 import com.bank.event_driven_banking_system.command.events.MoneyDepositedEvent;
+import com.bank.event_driven_banking_system.command.events.MoneyWithdrawnEvent;
 import com.bank.event_driven_banking_system.query.entity.AccountEntity;
 import com.bank.event_driven_banking_system.query.repository.AccountRepository;
 import org.axonframework.eventhandling.EventHandler;
@@ -44,4 +45,21 @@ public class AccountProjection
 
         System.out.println("Deposit updated in Query Database.");
     }
+
+    @EventHandler
+    public void on(MoneyWithdrawnEvent event)
+    {
+        AccountEntity account =
+                accountRepository.findById(event.getAccountId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Account not found"));
+
+        account.setBalance(
+                account.getBalance() - event.getAmount());
+
+        accountRepository.save(account);
+
+        System.out.println("Withdraw updated in Query Database.");
+    }
 }
+

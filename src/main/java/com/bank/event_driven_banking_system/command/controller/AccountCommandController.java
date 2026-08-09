@@ -2,6 +2,8 @@ package com.bank.event_driven_banking_system.command.controller;
 
 import com.bank.event_driven_banking_system.command.commands.DepositMoneyCommand;
 import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
+import com.bank.event_driven_banking_system.command.commands.TransferMoneyCommand;
+import com.bank.event_driven_banking_system.command.commands.WithdrawMoneyCommand;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,4 +49,30 @@ public class AccountCommandController {
         return "Money Deposited Successfully";
     }
 
+    @PostMapping("/withdraw")
+    public String withdrawAccount(@RequestBody WithdrawRequest request)
+    {
+        WithdrawMoneyCommand command = new WithdrawMoneyCommand(request.getAccountId(), request.getAmount());
+
+        commandGateway.sendAndWait(command);
+
+        return "Money Withdrawn Successfully";
+    }
+
+    @PostMapping("/transfer")
+    public String transferAccount(@RequestBody TransferMoneyRequest request)
+    {
+        String transferId = UUID.randomUUID().toString();
+        TransferMoneyCommand command = new TransferMoneyCommand(
+                transferId,
+                request.getSourceAccountId(),
+                request.getDestinationAccountId(),
+                request.getAmount()
+        );
+
+        commandGateway.sendAndWait(command);
+
+        return "Money Transfer Submitted Successfully. Transfer ID: " + transferId;
+    }
 }
+

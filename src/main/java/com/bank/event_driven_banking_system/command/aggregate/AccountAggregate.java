@@ -2,8 +2,10 @@ package com.bank.event_driven_banking_system.command.aggregate;
 
 import com.bank.event_driven_banking_system.command.commands.DepositMoneyCommand;
 import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
+import com.bank.event_driven_banking_system.command.commands.WithdrawMoneyCommand;
 import com.bank.event_driven_banking_system.command.events.AccountOpenedEvent;
 import com.bank.event_driven_banking_system.command.events.MoneyDepositedEvent;
+import com.bank.event_driven_banking_system.command.events.MoneyWithdrawnEvent;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -36,7 +38,7 @@ public class AccountAggregate
 
         AccountOpenedEvent event = new AccountOpenedEvent(command.getAccountID(), command.getCustomerName(), command.getOpeningBalance());
 
-        AggregateLifecycle.apply(event);    // apply this event means dont save latest balance only save event
+        AggregateLifecycle.apply(event);    // apply this event means don't save latest balance only save event
                                             // Axon stores Event, publishes it and calls @EventSourcingHandler
     }
 
@@ -51,6 +53,26 @@ public class AccountAggregate
         }
 
         MoneyDepositedEvent event = new MoneyDepositedEvent(command.getAccountId(), command.getAmount());
+
+        AggregateLifecycle.apply(event);
+    }
+
+    // Handles withdrawal from an existing account
+    @CommandHandler
+    public void handle(WithdrawMoneyCommand command)
+    {
+
+        if (command.getAmount() <= 0)
+        {
+            throw new IllegalArgumentException("Amount must be greater than zero.");
+        }
+
+        if (this.balance < command.getAmount())
+        {
+            throw new IllegalArgumentException("Insufficient balance.");
+        }
+
+        MoneyWithdrawnEvent event = new MoneyWithdrawnEvent(command.getAccountId(), command.getAmount());
 
         AggregateLifecycle.apply(event);
     }
@@ -72,5 +94,14 @@ public class AccountAggregate
 
         this.balance += event.getAmount();
     }
+
+
+    @EventSourcingHandler                   // Updates aggregate state after withdraw
+    public void on(MoneyWithdrawnEvent event)
+    {
+
+        this.balance -= event.getAmount();
+    }
 }
+
 
