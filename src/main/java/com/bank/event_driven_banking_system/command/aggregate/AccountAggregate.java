@@ -52,7 +52,7 @@ public class AccountAggregate
             throw new IllegalArgumentException("Amount must be greater than zero.");
         }
 
-        MoneyDepositedEvent event = new MoneyDepositedEvent(command.getAccountId(), command.getAmount());
+        MoneyDepositedEvent event = new MoneyDepositedEvent(command.getAccountId(), command.getAmount(), command.getTransferId());
 
         AggregateLifecycle.apply(event);
     }
@@ -72,7 +72,7 @@ public class AccountAggregate
             throw new IllegalArgumentException("Insufficient balance.");
         }
 
-        MoneyWithdrawnEvent event = new MoneyWithdrawnEvent(command.getAccountId(), command.getAmount());
+        MoneyWithdrawnEvent event = new MoneyWithdrawnEvent(command.getAccountId(), command.getAmount(), command.getTransferId());
 
         AggregateLifecycle.apply(event);
     }
