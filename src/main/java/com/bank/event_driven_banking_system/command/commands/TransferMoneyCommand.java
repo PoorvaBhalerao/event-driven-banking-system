@@ -7,11 +7,23 @@ public class TransferMoneyCommand {
     private String destinationAccountId;
     private double amount;
 
+    private String idempotencyKey;
+
     public TransferMoneyCommand(String transferId, String sourceAccountId, String destinationAccountId, double amount) {
         this.transferId = transferId;
         this.sourceAccountId = sourceAccountId;
         this.destinationAccountId = destinationAccountId;
         this.amount = amount;
+    }
+
+    public TransferMoneyCommand(String transferId, String sourceAccountId, String destinationAccountId,
+            double amount, String idempotencyKey) {
+
+        this.transferId = transferId;
+        this.sourceAccountId = sourceAccountId;
+        this.destinationAccountId = destinationAccountId;
+        this.amount = amount;
+        this.idempotencyKey = idempotencyKey;
     }
 
     public String getTransferId() {
@@ -29,4 +41,6 @@ public class TransferMoneyCommand {
     public double getAmount() {
         return amount;
     }
+
+    public String getIdempotencyKey() { return idempotencyKey;}
 }
