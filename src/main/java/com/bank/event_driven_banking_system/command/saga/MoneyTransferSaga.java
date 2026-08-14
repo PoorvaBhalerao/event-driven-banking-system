@@ -13,7 +13,7 @@ import com.bank.event_driven_banking_system.command.events.CompensationFailedEve
 import com.bank.event_driven_banking_system.command.idempotency.repository.IdempotencyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Saga                                   //This class is an Axon Saga// Its job is to coordinate a long-running business transaction
+@Saga                 //This class is an Axon Saga// Its job is to coordinate a long-running business transaction
 @ProcessingGroup("money-transfer-saga")
 public class MoneyTransferSaga
 {

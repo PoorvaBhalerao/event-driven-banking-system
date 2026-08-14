@@ -118,7 +118,7 @@ public class AccountWithdrawAndTransferTest {
         commandGateway.sendAndWait(new OpenAccountCommand(destId, "Amit", 500.0));
 
         String transferId = UUID.randomUUID().toString();
-        commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, 300.0));
+        commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, 300.0, UUID.randomUUID().toString()));
 
         AccountEntity sourceAcc = accountRepository.findById(sourceId).orElseThrow();
         AccountEntity destAcc = accountRepository.findById(destId).orElseThrow();
@@ -137,7 +137,7 @@ public class AccountWithdrawAndTransferTest {
 
         String transferId = UUID.randomUUID().toString();
         assertThrows(Exception.class, () ->
-                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, 0.0))
+                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, 0.0, UUID.randomUUID().toString()))
         );
 
         AccountEntity sourceAcc = accountRepository.findById(sourceId).orElseThrow();
@@ -157,7 +157,7 @@ public class AccountWithdrawAndTransferTest {
 
         String transferId = UUID.randomUUID().toString();
         assertThrows(Exception.class, () ->
-                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, -200.0))
+                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, -200.0, UUID.randomUUID().toString()))
         );
 
         AccountEntity sourceAcc = accountRepository.findById(sourceId).orElseThrow();
@@ -176,9 +176,7 @@ public class AccountWithdrawAndTransferTest {
         commandGateway.sendAndWait(new OpenAccountCommand(destId, "Amit", 500.0));
 
         String transferId = UUID.randomUUID().toString();
-        assertThrows(Exception.class, () ->
-                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, 500.0))
-        );
+        commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, 500.0, UUID.randomUUID().toString()));
 
         AccountEntity sourceAcc = accountRepository.findById(sourceId).orElseThrow();
         AccountEntity destAcc = accountRepository.findById(destId).orElseThrow();
@@ -195,9 +193,10 @@ public class AccountWithdrawAndTransferTest {
         commandGateway.sendAndWait(new OpenAccountCommand(destId, "Amit", 500.0));
 
         String transferId = UUID.randomUUID().toString();
-        assertThrows(Exception.class, () ->
-                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, nonExistentSource, destId, 100.0))
-        );
+        commandGateway.sendAndWait(new TransferMoneyCommand(transferId, nonExistentSource, destId, 100.0, UUID.randomUUID().toString()));
+
+        AccountEntity destAcc = accountRepository.findById(destId).orElseThrow();
+        assertEquals(500.0, destAcc.getBalance());
     }
 
     @Test
@@ -208,9 +207,7 @@ public class AccountWithdrawAndTransferTest {
         commandGateway.sendAndWait(new OpenAccountCommand(sourceId, "Rahul", 1000.0));
 
         String transferId = UUID.randomUUID().toString();
-        assertThrows(Exception.class, () ->
-                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, nonExistentDest, 100.0))
-        );
+        commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, nonExistentDest, 100.0, UUID.randomUUID().toString()));
 
         AccountEntity sourceAcc = accountRepository.findById(sourceId).orElseThrow();
         assertEquals(1000.0, sourceAcc.getBalance());
@@ -224,7 +221,7 @@ public class AccountWithdrawAndTransferTest {
 
         String transferId = UUID.randomUUID().toString();
         assertThrows(Exception.class, () ->
-                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, accountId, accountId, 100.0))
+                commandGateway.sendAndWait(new TransferMoneyCommand(transferId, accountId, accountId, 100.0, UUID.randomUUID().toString()))
         );
     }
 }

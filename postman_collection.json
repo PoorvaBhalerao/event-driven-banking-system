@@ -1,0 +1,240 @@
+{
+	"info": {
+		"_postman_id": "b3e9a711-4821-4f11-9430-8a215e912401",
+		"name": "Event-Driven Banking System API",
+		"description": "Ready-to-use Postman Collection for testing CQRS Command and Query endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Open Account - Alice",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"customerName\": \"Alice\",\n  \"openingBalance\": 1000.0\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/accounts/open",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"open"
+					]
+				}
+			}
+		},
+		{
+			"name": "2. Open Account - Bob",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"customerName\": \"Bob\",\n  \"openingBalance\": 500.0\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/accounts/open",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"open"
+					]
+				}
+			}
+		},
+		{
+			"name": "3. Deposit Money",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"accountId\": \"REPLACE_WITH_ALICE_ACCOUNT_ID\",\n  \"amount\": 250.0\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/accounts/deposit",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"deposit"
+					]
+				}
+			}
+		},
+		{
+			"name": "4. Withdraw Money",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"accountId\": \"REPLACE_WITH_ALICE_ACCOUNT_ID\",\n  \"amount\": 100.0\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/accounts/withdraw",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"withdraw"
+					]
+				}
+			}
+		},
+		{
+			"name": "5. Transfer Money (Saga + Idempotency)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "tx-key-1001"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sourceAccountId\": \"REPLACE_WITH_ALICE_ACCOUNT_ID\",\n  \"destinationAccountId\": \"REPLACE_WITH_BOB_ACCOUNT_ID\",\n  \"amount\": 300.0\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/accounts/transfer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"transfer"
+					]
+				}
+			}
+		},
+		{
+			"name": "6. Get Account Details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/accounts/REPLACE_WITH_ALICE_ACCOUNT_ID",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"REPLACE_WITH_ALICE_ACCOUNT_ID"
+					]
+				}
+			}
+		},
+		{
+			"name": "7. Get Transaction History",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/accounts/REPLACE_WITH_ALICE_ACCOUNT_ID/transactions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"REPLACE_WITH_ALICE_ACCOUNT_ID",
+						"transactions"
+					]
+				}
+			}
+		},
+		{
+			"name": "8. Close Account",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"accountId\": \"REPLACE_WITH_ALICE_ACCOUNT_ID\",\n  \"reason\": \"Customer Request\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/accounts/close",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"close"
+					]
+				}
+			}
+		},
+		{
+			"name": "9. Trigger Event Replay",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/admin/replay-events",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"admin",
+						"replay-events"
+					]
+				}
+			}
+		}
+	]
+}

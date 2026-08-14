@@ -61,5 +61,20 @@ public class AccountProjection
 
         System.out.println("Withdraw updated in Query Database.");
     }
+
+    @EventHandler
+    public void on(com.bank.event_driven_banking_system.command.events.AccountClosedEvent event)
+    {
+        AccountEntity account =
+                accountRepository.findById(event.getAccountId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Account not found"));
+
+        account.setStatus("CLOSED");
+
+        accountRepository.save(account);
+
+        System.out.println("Account closed updated in Query Database.");
+    }
 }
 

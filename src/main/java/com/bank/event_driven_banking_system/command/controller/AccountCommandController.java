@@ -5,8 +5,10 @@ import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
 import com.bank.event_driven_banking_system.command.commands.TransferMoneyCommand;
 import com.bank.event_driven_banking_system.command.commands.WithdrawMoneyCommand;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @CrossOrigin(origins = "*")
@@ -22,46 +24,55 @@ public class AccountCommandController {
     }
 
     @PostMapping("/open")
-    public String openAccount(@RequestBody OpenAccountRequest request)
+    public ResponseEntity<Map<String, String>> openAccount(@RequestBody OpenAccountRequest request)
     {
-        String accountId = UUID.randomUUID().toString();        // create ramdon accountID Every account gets unique Id
+        String accountId = UUID.randomUUID().toString();
 
         OpenAccountCommand command = new OpenAccountCommand(accountId, request.getCustomerName(),
-                request.getOpeningBalance());                   // this controller is not opening account its simple preparing command
+                request.getOpeningBalance());
 
-        commandGateway.sendAndWait(command);                           // controller says, Axon pls handle this command
-        //From there, Axon finds the correct AccountAggregate, executes the @CommandHandler, creates an AccountOpenedEvent, and updates the aggregate through the @EventSourcingHandler.
-        //sendAndWait() waits until the command has been completely processed.
+        commandGateway.sendAndWait(command);
 
-        return "Account creation request submitted successfully. Account ID: " + accountId;
+        return ResponseEntity.ok(Map.of(
+                "status", "SUCCESS",
+                "accountId", accountId,
+                "message", "Account created successfully. Account ID: " + accountId
+        ));
     }
 
     @PostMapping("/deposit")
-    public String depositAccount(@RequestBody DepositRequest request)
+    public ResponseEntity<Map<String, String>> depositAccount(@RequestBody DepositRequest request)
     {
         DepositMoneyCommand command = new DepositMoneyCommand(request.getAccountId(), request.getAmount());
 
-        commandGateway.sendAndWait(command);                           // controller says, Axon pls handle this command
-        //From there, Axon finds the correct AccountAggregate, executes the @CommandHandler, creates an AccountOpenedEvent, and updates the aggregate through the @EventSourcingHandler.
-        //sendAndWait() waits until the command has been completely processed.
+        commandGateway.sendAndWait(command);
 
-        return "Money Deposited Successfully";
+        return ResponseEntity.ok(Map.of(
+                "status", "SUCCESS",
+                "message", "Money Deposited Successfully"
+        ));
     }
 
     @PostMapping("/withdraw")
-    public String withdrawAccount(@RequestBody WithdrawRequest request)
+    public ResponseEntity<Map<String, String>> withdrawAccount(@RequestBody WithdrawRequest request)
     {
         WithdrawMoneyCommand command = new WithdrawMoneyCommand(request.getAccountId(), request.getAmount());
 
         commandGateway.sendAndWait(command);
 
-        return "Money Withdrawn Successfully";
+        return ResponseEntity.ok(Map.of(
+                "status", "SUCCESS",
+                "message", "Money Withdrawn Successfully"
+        ));
     }
 
     @PostMapping("/transfer")
-    public String transferAccount(@RequestBody TransferMoneyRequest request,
-                                  @RequestHeader("Idempotency-Key") String idempotencyKey)
+    public ResponseEntity<Map<String, String>> transferAccount(@RequestBody TransferMoneyRequest request,
+                                                                @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey)
     {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            idempotencyKey = UUID.randomUUID().toString();
+        }
         String transferId = UUID.randomUUID().toString();
         TransferMoneyCommand command = new TransferMoneyCommand(
                 transferId,
@@ -73,7 +84,28 @@ public class AccountCommandController {
 
         String resultTransferId = commandGateway.sendAndWait(command);
 
-        return "Money Transfer Submitted Successfully. Transfer ID: " + resultTransferId;
+        return ResponseEntity.ok(Map.of(
+                "status", "SUCCESS",
+                "transferId", resultTransferId != null ? resultTransferId : transferId,
+                "message", "Money Transfer Submitted Successfully. Transfer ID: " + (resultTransferId != null ? resultTransferId : transferId)
+        ));
+    }
+
+    @PostMapping("/close")
+    public ResponseEntity<Map<String, String>> closeAccount(@RequestBody CloseAccountRequest request)
+    {
+        com.bank.event_driven_banking_system.command.commands.CloseAccountCommand command =
+                new com.bank.event_driven_banking_system.command.commands.CloseAccountCommand(
+                        request.getAccountId(),
+                        request.getReason()
+                );
+
+        commandGateway.sendAndWait(command);
+
+        return ResponseEntity.ok(Map.of(
+                "status", "SUCCESS",
+                "message", "Account Closed Successfully"
+        ));
     }
 }
 

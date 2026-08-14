@@ -127,7 +127,7 @@ public class TransactionHistoryIntegrationTest {
         commandGateway.sendAndWait(new OpenAccountCommand(destId, "Bob", 500.0));
 
         String transferId = UUID.randomUUID().toString();
-        commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, 400.0));
+        commandGateway.sendAndWait(new TransferMoneyCommand(transferId, sourceId, destId, 400.0, UUID.randomUUID().toString()));
 
         List<TransactionHistoryResponse> sourceHistory = transactionHistoryService.getTransactionHistory(sourceId);
         List<TransactionHistoryResponse> destHistory = transactionHistoryService.getTransactionHistory(destId);

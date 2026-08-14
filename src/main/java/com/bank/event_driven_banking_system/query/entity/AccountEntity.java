@@ -13,6 +13,8 @@ public class AccountEntity
 
     private double balance;
 
+    private String status = "ACTIVE";
+
     public AccountEntity() { }
 
     public AccountEntity(String accountId, String customerName, double balance)
@@ -20,6 +22,15 @@ public class AccountEntity
         this.accountId = accountId;
         this.customerName = customerName;
         this.balance = balance;
+        this.status = "ACTIVE";
+    }
+
+    public AccountEntity(String accountId, String customerName, double balance, String status)
+    {
+        this.accountId = accountId;
+        this.customerName = customerName;
+        this.balance = balance;
+        this.status = status;
     }
 
     public String getAccountId() {
@@ -44,5 +55,13 @@ public class AccountEntity
 
     public void setBalance(double balance) {
         this.balance = balance;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

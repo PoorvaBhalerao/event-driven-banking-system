@@ -45,4 +45,27 @@ public class AccountAggregateTest {
                 .when(new WithdrawMoneyCommand("A123", 600.0))
                 .expectException(IllegalArgumentException.class);
     }
+
+    @Test
+    public void testCloseAccount_Success() {
+        fixture.given(new AccountOpenedEvent("A123", "Rahul", 0.0))
+                .when(new com.bank.event_driven_banking_system.command.commands.CloseAccountCommand("A123", "Customer Request"))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents(new com.bank.event_driven_banking_system.command.events.AccountClosedEvent("A123", "Customer Request"));
+    }
+
+    @Test
+    public void testCloseAccount_NonZeroBalance() {
+        fixture.given(new AccountOpenedEvent("A123", "Rahul", 500.0))
+                .when(new com.bank.event_driven_banking_system.command.commands.CloseAccountCommand("A123", "Customer Request"))
+                .expectException(IllegalStateException.class);
+    }
+
+    @Test
+    public void testCloseAccount_AlreadyClosed() {
+        fixture.given(new AccountOpenedEvent("A123", "Rahul", 0.0),
+                        new com.bank.event_driven_banking_system.command.events.AccountClosedEvent("A123", "Customer Request"))
+                .when(new com.bank.event_driven_banking_system.command.commands.CloseAccountCommand("A123", "Duplicate Close"))
+                .expectException(IllegalStateException.class);
+    }
 }

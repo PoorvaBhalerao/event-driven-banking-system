@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Event-Driven Banking Dashboard</title>
+  <title>Event-Driven Banking Portal | CQRS & Event Sourcing</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -39,7 +39,7 @@
     }
 
     .container {
-      max-width: 1280px;
+      max-width: 1380px;
       margin: 0 auto;
     }
 
@@ -59,41 +59,60 @@
     }
 
     .logo-icon {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       background: linear-gradient(135deg, var(--primary), var(--success));
-      border-radius: 10px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 1.25rem;
+      font-size: 1.35rem;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
     }
 
     h1 {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 600;
     }
 
     .status-badge {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 0.35rem 0.75rem;
+      padding: 0.4rem 0.85rem;
       border-radius: 20px;
       font-size: 0.85rem;
       font-weight: 500;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      transition: all 0.3s;
+    }
+
+    .status-badge.online {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.offline {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
     .status-dot {
       width: 8px;
       height: 8px;
-      background: var(--success);
       border-radius: 50%;
+    }
+
+    .status-badge.online .status-dot {
+      background: var(--success);
       box-shadow: 0 0 8px var(--success);
+    }
+
+    .status-badge.offline .status-dot {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
     }
 
     .grid {
@@ -190,9 +209,27 @@
     }
 
     .balance-amount {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 700;
       color: var(--success);
+    }
+
+    .account-badge-active {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .account-badge-closed {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
     }
 
     .timeline {
@@ -231,6 +268,7 @@
     .type-MONEY_DEPOSITED { background: rgba(16, 185, 129, 0.2); color: #34d399; }
     .type-MONEY_WITHDRAWN { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
     .type-TRANSFER_COMPLETED { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .type-ACCOUNT_CLOSED { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
     .event-meta {
       font-size: 0.8rem;
@@ -245,7 +283,7 @@
       padding: 1rem;
       font-family: monospace;
       font-size: 0.85rem;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
       color: #38bdf8;
     }
@@ -262,6 +300,7 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       display: none;
       z-index: 1000;
+      font-weight: 500;
     }
 
     .toast.show {
@@ -282,11 +321,16 @@
         <div class="logo-icon">Ax</div>
         <div>
           <h1>Event-Driven Banking Portal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">Axon Framework & Event Sourcing Dashboard</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">CQRS, Event Sourcing & Apache Kafka Dashboard</p>
         </div>
       </div>
-      <div class="status-badge">
-        <div class="status-dot"></div> API Online (localhost:8080)
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <button onclick="triggerEventReplay()" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; width: auto;">
+          🔄 Event Replay (Reset DB)
+        </button>
+        <div id="connectionStatus" class="status-badge offline">
+          <div class="status-dot"></div> <span id="statusText">Checking Backend...</span>
+        </div>
       </div>
     </header>
 
@@ -335,7 +379,7 @@
 
       <!-- Transfer Money Card -->
       <div class="card">
-        <div class="card-title">🔄 Transfer Money</div>
+        <div class="card-title">🔄 Transfer Money (Saga)</div>
         <div class="form-group">
           <label for="transferSourceId">Source Account ID</label>
           <input type="text" id="transferSourceId" placeholder="Source Account ID">
@@ -349,6 +393,20 @@
           <input type="number" id="transferAmount" placeholder="300.0" value="300">
         </div>
         <button onclick="transferMoney()" style="background: #a855f7;">Transfer Money</button>
+      </div>
+
+      <!-- Close Account Card -->
+      <div class="card">
+        <div class="card-title">🔒 Close Account</div>
+        <div class="form-group">
+          <label for="closeAccountId">Account ID</label>
+          <input type="text" id="closeAccountId" placeholder="Account ID to Close">
+        </div>
+        <div class="form-group">
+          <label for="closeReason">Reason</label>
+          <input type="text" id="closeReason" value="Customer Request">
+        </div>
+        <button onclick="closeAccount()" style="background: var(--danger);">Close Account</button>
       </div>
     </div>
 
@@ -366,7 +424,7 @@
         <div id="balanceContainer" class="balance-display" style="display: none;">
           <div>
             <div style="font-size: 0.85rem; color: var(--text-muted);">Current Read Model State</div>
-            <div id="customerNameDisplay" style="font-weight: 600;">-</div>
+            <div id="customerNameDisplay" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">-</div>
           </div>
           <div class="balance-amount" id="balanceDisplay">$0.00</div>
         </div>
@@ -381,17 +439,18 @@
 
     <!-- API Activity Console Log -->
     <div class="card">
-      <div class="card-title">🖥️ Live API Request Log</div>
-      <div id="log" class="log-container">System initialized. Ready to execute commands...</div>
+      <div class="card-title">🖥️ Live API Request & Event Stream Log</div>
+      <div id="log" class="log-container">System initialized. Checking backend connection...</div>
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
 
   <script>
-    const baseUrl = window.location.origin.startsWith('file:') ? 'http://localhost:8080' : window.location.origin;
+    const baseUrl = 'http://localhost:8080';
 
     function log(msg) {
+      console.log(msg);
       const logDiv = document.getElementById('log');
       const time = new Date().toLocaleTimeString();
       logDiv.innerHTML = `[${time}] ${msg}<br>` + logDiv.innerHTML;
@@ -409,8 +468,31 @@
       document.getElementById('depositAccountId').value = accountId;
       document.getElementById('withdrawAccountId').value = accountId;
       document.getElementById('transferSourceId').value = accountId;
+      document.getElementById('closeAccountId').value = accountId;
       document.getElementById('historyAccountId').value = accountId;
     }
+
+    async function checkBackendConnection() {
+      const badge = document.getElementById('connectionStatus');
+      const text = document.getElementById('statusText');
+      try {
+        const res = await fetch(`${baseUrl}/accounts/non-existent-ping-test`, { method: 'GET' });
+        badge.className = 'status-badge online';
+        text.innerText = 'API Server Online (localhost:8080)';
+      } catch (e) {
+        // Even 404 means server is up!
+        if (e.name !== 'TypeError') {
+          badge.className = 'status-badge online';
+          text.innerText = 'API Server Online (localhost:8080)';
+        } else {
+          badge.className = 'status-badge offline';
+          text.innerText = 'Server Offline! Run: .\\mvnw.cmd spring-boot:run';
+        }
+      }
+    }
+
+    setInterval(checkBackendConnection, 3000);
+    checkBackendConnection();
 
     async function openAccount() {
       const name = document.getElementById('customerName').value;
@@ -428,24 +510,20 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ customerName: name, openingBalance: balance })
         });
-        const text = await res.text();
+        const data = await res.json();
 
-        if (res.ok) {
-          showToast(text);
-          log(`Response: ${text}`);
-          // Extract Account ID if present
-          const match = text.match(/Account ID:\s*([a-f0-9\-]+)/i);
-          if (match && match[1]) {
-            updateAllAccountInputs(match[1]);
-            fetchHistory();
-          }
+        if (res.ok && data.accountId) {
+          showToast(`Account Created Successfully! ID: ${data.accountId}`);
+          log(`✅ Success: ${data.message}`);
+          updateAllAccountInputs(data.accountId);
+          setTimeout(fetchHistory, 500);
         } else {
-          showToast(text, true);
-          log(`Error Response: ${text}`);
+          showToast(data.message || 'Failed to open account', true);
+          log(`❌ Error: ${JSON.stringify(data)}`);
         }
       } catch (err) {
-        showToast('Failed to connect to API server', true);
-        log(`Network Error: ${err.message}`);
+        showToast('Cannot connect to Spring Boot backend! Check console.', true);
+        log(`🚨 Network Error: ${err.message}`);
       }
     }
 
@@ -470,7 +548,8 @@
         log(`Response: ${text}`);
         if (res.ok) fetchHistory();
       } catch (err) {
-        showToast('Failed to execute deposit', true);
+        showToast('Cannot connect to Spring Boot backend!', true);
+        log(`Network Error: ${err.message}`);
       }
     }
 
@@ -495,7 +574,8 @@
         log(`Response: ${text}`);
         if (res.ok) fetchHistory();
       } catch (err) {
-        showToast('Failed to execute withdrawal', true);
+        showToast('Cannot connect to Spring Boot backend!', true);
+        log(`Network Error: ${err.message}`);
       }
     }
 
@@ -513,7 +593,10 @@
         log(`POST /accounts/transfer -> ${sourceAccountId} => ${destinationAccountId} ($${amount})`);
         const res = await fetch(`${baseUrl}/accounts/transfer`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Idempotency-Key': 'key-' + Date.now()
+          },
           body: JSON.stringify({ sourceAccountId, destinationAccountId, amount })
         });
         const text = await res.text();
@@ -521,7 +604,52 @@
         log(`Response: ${text}`);
         if (res.ok) fetchHistory();
       } catch (err) {
-        showToast('Failed to execute transfer', true);
+        showToast('Cannot connect to Spring Boot backend!', true);
+        log(`Network Error: ${err.message}`);
+      }
+    }
+
+    async function closeAccount() {
+      const accountId = document.getElementById('closeAccountId').value;
+      const reason = document.getElementById('closeReason').value;
+
+      if (!accountId) {
+        showToast('Please provide Account ID to close', true);
+        return;
+      }
+
+      try {
+        log(`POST /accounts/close -> ID: ${accountId}, Reason: ${reason}`);
+        const res = await fetch(`${baseUrl}/accounts/close`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, reason })
+        });
+        const text = await res.text();
+        showToast(text, !res.ok);
+        log(`Response: ${text}`);
+        if (res.ok) fetchHistory();
+      } catch (err) {
+        showToast('Cannot connect to Spring Boot backend!', true);
+        log(`Network Error: ${err.message}`);
+      }
+    }
+
+    async function triggerEventReplay() {
+      if (!confirm('Are you sure you want to trigger Event Replay? This will wipe read-model database tables and replay events from offset 0.')) {
+        return;
+      }
+
+      try {
+        log('POST /admin/replay-events -> Triggering Read Model Replay...');
+        const res = await fetch(`${baseUrl}/admin/replay-events`, { method: 'POST' });
+        const json = await res.json();
+        showToast(json.message, !res.ok);
+        log(`Replay Response: ${JSON.stringify(json)}`);
+        fetchHistory();
+      } catch (err) {
+        showToast('Cannot connect to Spring Boot backend!', true);
+        log(`Network Error: ${err.message}`);
       }
     }
 
@@ -538,7 +666,10 @@
         if (stateRes.ok) {
           const account = await stateRes.json();
           document.getElementById('balanceContainer').style.display = 'flex';
-          document.getElementById('customerNameDisplay').innerText = `Customer: ${account.customerName}`;
+          const statusBadge = account.status === 'CLOSED' ? 
+            '<span class="account-badge-closed">CLOSED</span>' : 
+            '<span class="account-badge-active">ACTIVE</span>';
+          document.getElementById('customerNameDisplay').innerHTML = `Customer: ${account.customerName} ${statusBadge}`;
           document.getElementById('balanceDisplay').innerText = `$${account.balance.toFixed(2)}`;
         } else {
           document.getElementById('balanceContainer').style.display = 'none';
@@ -578,15 +709,15 @@
                 ${ev.transferId ? `<br>Transfer ID: ${ev.transferId}` : ''}
               </div>
             </div>
-            <div style="font-size: 1.25rem; font-weight: 700; color: ${ev.eventType.includes('WITHDRAW') ? 'var(--warning)' : 'var(--success)'};">
+            <div style="font-size: 1.25rem; font-weight: 700; color: ${ev.eventType.includes('WITHDRAW') || ev.eventType.includes('CLOSED') ? 'var(--warning)' : 'var(--success)'};">
               ${ev.eventType.includes('WITHDRAW') ? '-' : '+'}$${ev.amount ? ev.amount.toFixed(2) : '0.00'}
             </div>
           </div>
         `).join('');
 
       } catch (err) {
-        showToast('Failed to fetch history', true);
-        log(`Fetch Error: ${err.message}`);
+        showToast('Cannot connect to Spring Boot backend!', true);
+        log(`Network Error: ${err.message}`);
       }
     }
   </script>

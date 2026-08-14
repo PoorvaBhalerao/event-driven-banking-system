@@ -1,8 +1,10 @@
 package com.bank.event_driven_banking_system.command.aggregate;
 
+import com.bank.event_driven_banking_system.command.commands.CloseAccountCommand;
 import com.bank.event_driven_banking_system.command.commands.DepositMoneyCommand;
 import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
 import com.bank.event_driven_banking_system.command.commands.WithdrawMoneyCommand;
+import com.bank.event_driven_banking_system.command.events.AccountClosedEvent;
 import com.bank.event_driven_banking_system.command.events.AccountOpenedEvent;
 import com.bank.event_driven_banking_system.command.events.MoneyDepositedEvent;
 import com.bank.event_driven_banking_system.command.events.MoneyWithdrawnEvent;
@@ -23,6 +25,8 @@ public class AccountAggregate
     private String customerName;
 
     private double balance;
+
+    private boolean active = true;
 
     //Required by Axon
     public AccountAggregate() {}            //Axon needs this constructor to recreate an
@@ -46,6 +50,10 @@ public class AccountAggregate
     @CommandHandler
     public void handle(DepositMoneyCommand command)
     {
+        if (!active)
+        {
+            throw new IllegalStateException("Account is closed.");
+        }
 
         if (command.getAmount() <= 0)
         {
@@ -61,6 +69,10 @@ public class AccountAggregate
     @CommandHandler
     public void handle(WithdrawMoneyCommand command)
     {
+        if (!active)
+        {
+            throw new IllegalStateException("Account is closed.");
+        }
 
         if (command.getAmount() <= 0)
         {
@@ -77,30 +89,50 @@ public class AccountAggregate
         AggregateLifecycle.apply(event);
     }
 
+    // Handles account closure
+    @CommandHandler
+    public void handle(CloseAccountCommand command)
+    {
+        if (!active)
+        {
+            throw new IllegalStateException("Account is already closed.");
+        }
+
+        if (this.balance > 0)
+        {
+            throw new IllegalStateException("Cannot close account with a non-zero balance.");
+        }
+
+        AccountClosedEvent event = new AccountClosedEvent(command.getAccountId(), command.getReason());
+
+        AggregateLifecycle.apply(event);
+    }
 
     @EventSourcingHandler                   // Updates aggregate state after account creation
     public void on(AccountOpenedEvent event)
     {
-
         this.accountId = event.getAccountId();
         this.customerName = event.getCustomerName();
         this.balance = event.getOpeningBalance();
+        this.active = true;
     }
-
 
     @EventSourcingHandler                   // Updates aggregate state after deposit
     public void on(MoneyDepositedEvent event)
     {
-
         this.balance += event.getAmount();
     }
-
 
     @EventSourcingHandler                   // Updates aggregate state after withdraw
     public void on(MoneyWithdrawnEvent event)
     {
-
         this.balance -= event.getAmount();
+    }
+
+    @EventSourcingHandler                   // Updates aggregate state after account closure
+    public void on(AccountClosedEvent event)
+    {
+        this.active = false;
     }
 }
 
