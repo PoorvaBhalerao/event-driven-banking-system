@@ -1,6 +1,6 @@
 package com.bank.event_driven_banking_system.container;
 
-import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
+import com.bank.event_driven_banking_system.core.commands.OpenAccountCommand;
 import com.bank.event_driven_banking_system.query.repository.AccountRepository;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.jupiter.api.DisplayName;

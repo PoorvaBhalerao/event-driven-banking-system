@@ -1,9 +1,9 @@
 package com.bank.event_driven_banking_system;
 
-import com.bank.event_driven_banking_system.command.commands.DepositMoneyCommand;
-import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
-import com.bank.event_driven_banking_system.command.commands.TransferMoneyCommand;
-import com.bank.event_driven_banking_system.command.commands.WithdrawMoneyCommand;
+import com.bank.event_driven_banking_system.core.commands.DepositMoneyCommand;
+import com.bank.event_driven_banking_system.core.commands.OpenAccountCommand;
+import com.bank.event_driven_banking_system.core.commands.TransferMoneyCommand;
+import com.bank.event_driven_banking_system.core.commands.WithdrawMoneyCommand;
 import com.bank.event_driven_banking_system.query.entity.AccountEntity;
 import com.bank.event_driven_banking_system.query.repository.AccountRepository;
 import org.axonframework.commandhandling.gateway.CommandGateway;

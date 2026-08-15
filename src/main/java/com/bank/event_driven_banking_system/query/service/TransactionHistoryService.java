@@ -1,6 +1,6 @@
 package com.bank.event_driven_banking_system.query.service;
 
-import com.bank.event_driven_banking_system.command.events.*;
+import com.bank.event_driven_banking_system.core.events.*;
 import com.bank.event_driven_banking_system.query.dto.TransactionHistoryResponse;
 import com.bank.event_driven_banking_system.query.repository.AccountRepository;
 import org.axonframework.eventsourcing.eventstore.DomainEventStream;
@@ -34,8 +34,6 @@ public class TransactionHistoryService {
         while (eventStream.hasNext()) {
             DomainEventMessage<?> domainEvent = eventStream.next();
             Object payload = domainEvent.getPayload();
-            String eventId = domainEvent.getIdentifier();
-            Instant timestamp = domainEvent.getTimestamp();
 
             TransactionHistoryResponse response = mapToResponse(domainEvent, payload, accountId);
             if (response != null) {

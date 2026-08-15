@@ -1,7 +1,7 @@
 package com.bank.event_driven_banking_system.kafka;
 
-import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
-import com.bank.event_driven_banking_system.command.commands.DepositMoneyCommand;
+import com.bank.event_driven_banking_system.core.commands.OpenAccountCommand;
+import com.bank.event_driven_banking_system.core.commands.DepositMoneyCommand;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.config.EventProcessingConfigurer;
 import org.junit.jupiter.api.Test;

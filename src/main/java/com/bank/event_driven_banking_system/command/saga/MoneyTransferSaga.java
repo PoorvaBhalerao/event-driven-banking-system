@@ -1,7 +1,9 @@
 package com.bank.event_driven_banking_system.command.saga;
-import com.bank.event_driven_banking_system.command.commands.DepositMoneyCommand;
-import com.bank.event_driven_banking_system.command.commands.WithdrawMoneyCommand;
-import com.bank.event_driven_banking_system.command.events.*;
+
+import com.bank.event_driven_banking_system.command.idempotency.IdempotencyRepository;
+import com.bank.event_driven_banking_system.core.commands.DepositMoneyCommand;
+import com.bank.event_driven_banking_system.core.commands.WithdrawMoneyCommand;
+import com.bank.event_driven_banking_system.core.events.*;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.gateway.EventGateway;
@@ -9,16 +11,11 @@ import org.axonframework.modelling.saga.EndSaga;
 import org.axonframework.modelling.saga.SagaEventHandler;
 import org.axonframework.modelling.saga.StartSaga;
 import org.axonframework.spring.stereotype.Saga;
-import com.bank.event_driven_banking_system.command.events.CompensationFailedEvent;
-import com.bank.event_driven_banking_system.command.idempotency.repository.IdempotencyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Saga                 //This class is an Axon Saga// Its job is to coordinate a long-running business transaction
+@Saga
 @ProcessingGroup("money-transfer-saga")
-public class MoneyTransferSaga
-{
-    // CommandGateway -saga sends commands to aggregate
-    // transient - Don't persist this injected infrastructure object as Saga state
+public class MoneyTransferSaga {
 
     @Autowired
     private transient CommandGateway commandGateway;
@@ -28,7 +25,6 @@ public class MoneyTransferSaga
 
     @Autowired
     private transient IdempotencyRepository idempotencyRepository;
-
 
     private String transferId;
     private String sourceAccountId;
@@ -41,7 +37,6 @@ public class MoneyTransferSaga
     @StartSaga
     @SagaEventHandler(associationProperty = "transferId")
     public void handle(TransferInitiatedEvent event) {
-
         this.transferId = event.getTransferId();
         this.sourceAccountId = event.getSourceAccountId();
         this.destinationAccountId = event.getDestinationAccountId();
@@ -49,13 +44,11 @@ public class MoneyTransferSaga
 
         try {
             commandGateway.sendAndWait(new WithdrawMoneyCommand(
-                            sourceAccountId,
-                            amount,
-                            transferId
-                    ));
-        }
-        catch (Exception ex)
-        {
+                    sourceAccountId,
+                    amount,
+                    transferId
+            ));
+        } catch (Exception ex) {
             eventGateway.publish(
                     new TransferFailedEvent(
                             transferId,
@@ -69,19 +62,14 @@ public class MoneyTransferSaga
 
     @SagaEventHandler(associationProperty = "transferId")
     public void handle(MoneyWithdrawnEvent event) {
-
         try {
-
             commandGateway.sendAndWait(new DepositMoneyCommand(destinationAccountId, amount, transferId));
-
         } catch (Exception ex) {
-
             compensateTransfer(ex);
         }
     }
 
     private void compensateTransfer(Exception ex) {
-
         compensationInProgress = true;
         failureReason = ex.getMessage();
 
@@ -92,8 +80,7 @@ public class MoneyTransferSaga
                             amount,
                             transferId
                     ));
-        }
-        catch (Exception compensationException) {
+        } catch (Exception compensationException) {
             eventGateway.publish(
                     new CompensationFailedEvent(
                             transferId,
@@ -107,9 +94,7 @@ public class MoneyTransferSaga
 
     @SagaEventHandler(associationProperty = "transferId")
     public void handle(MoneyDepositedEvent event) {
-
         if (compensationInProgress) {
-
             // This deposit is restoring money to the source account.
             eventGateway.publish(
                     new TransferFailedEvent(
@@ -120,7 +105,6 @@ public class MoneyTransferSaga
                             failureReason
                     )
             );
-
             return;
         }
 
@@ -137,11 +121,10 @@ public class MoneyTransferSaga
     @EndSaga
     @SagaEventHandler(associationProperty = "transferId")
     public void handle(TransferCompletedEvent event) {
-        // trannsfer completed
-
         idempotencyRepository
                 .findByTransferId(event.getTransferId())
-                .ifPresent(record -> { record.setStatus("COMPLETED");
+                .ifPresent(record -> {
+                    record.setStatus("COMPLETED");
                     idempotencyRepository.save(record);
                 });
     }
@@ -149,13 +132,10 @@ public class MoneyTransferSaga
     @EndSaga
     @SagaEventHandler(associationProperty = "transferId")
     public void handle(TransferFailedEvent event) {
-
-        // Transfer failed, compensation completed
-        // or withdrawal failed.
-
         idempotencyRepository
                 .findByTransferId(event.getTransferId())
-                .ifPresent(record -> { record.setStatus("FAILED");
+                .ifPresent(record -> {
+                    record.setStatus("FAILED");
                     idempotencyRepository.save(record);
                 });
     }
@@ -163,17 +143,11 @@ public class MoneyTransferSaga
     @EndSaga
     @SagaEventHandler(associationProperty = "transferId")
     public void handle(CompensationFailedEvent event) {
-
-        // Automatic compensation failed.
-        // The failure remains recorded for recovery.
-
         idempotencyRepository
                 .findByTransferId(event.getTransferId())
-                .ifPresent(record ->
-                { record.setStatus("FAILED");
+                .ifPresent(record -> {
+                    record.setStatus("FAILED");
                     idempotencyRepository.save(record);
                 });
     }
-
 }
-

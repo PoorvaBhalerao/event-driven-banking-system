@@ -1,9 +1,7 @@
 package com.bank.event_driven_banking_system.command.controller;
 
-import com.bank.event_driven_banking_system.command.commands.DepositMoneyCommand;
-import com.bank.event_driven_banking_system.command.commands.OpenAccountCommand;
-import com.bank.event_driven_banking_system.command.commands.TransferMoneyCommand;
-import com.bank.event_driven_banking_system.command.commands.WithdrawMoneyCommand;
+import com.bank.event_driven_banking_system.command.dto.*;
+import com.bank.event_driven_banking_system.core.commands.*;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,18 +16,19 @@ public class AccountCommandController {
 
     private final CommandGateway commandGateway;
 
-    public AccountCommandController(CommandGateway commandGateway)
-    {
+    public AccountCommandController(CommandGateway commandGateway) {
         this.commandGateway = commandGateway;
     }
 
     @PostMapping("/open")
-    public ResponseEntity<Map<String, String>> openAccount(@RequestBody OpenAccountRequest request)
-    {
+    public ResponseEntity<Map<String, String>> openAccount(@RequestBody OpenAccountRequest request) {
         String accountId = UUID.randomUUID().toString();
 
-        OpenAccountCommand command = new OpenAccountCommand(accountId, request.getCustomerName(),
-                request.getOpeningBalance());
+        OpenAccountCommand command = new OpenAccountCommand(
+                accountId,
+                request.getCustomerName(),
+                request.getOpeningBalance()
+        );
 
         commandGateway.sendAndWait(command);
 
@@ -41,8 +40,7 @@ public class AccountCommandController {
     }
 
     @PostMapping("/deposit")
-    public ResponseEntity<Map<String, String>> depositAccount(@RequestBody DepositRequest request)
-    {
+    public ResponseEntity<Map<String, String>> depositAccount(@RequestBody DepositRequest request) {
         DepositMoneyCommand command = new DepositMoneyCommand(request.getAccountId(), request.getAmount());
 
         commandGateway.sendAndWait(command);
@@ -54,8 +52,7 @@ public class AccountCommandController {
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<Map<String, String>> withdrawAccount(@RequestBody WithdrawRequest request)
-    {
+    public ResponseEntity<Map<String, String>> withdrawAccount(@RequestBody WithdrawRequest request) {
         WithdrawMoneyCommand command = new WithdrawMoneyCommand(request.getAccountId(), request.getAmount());
 
         commandGateway.sendAndWait(command);
@@ -67,9 +64,10 @@ public class AccountCommandController {
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<Map<String, String>> transferAccount(@RequestBody TransferMoneyRequest request,
-                                                                @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey)
-    {
+    public ResponseEntity<Map<String, String>> transferAccount(
+            @RequestBody TransferMoneyRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
             idempotencyKey = UUID.randomUUID().toString();
         }
@@ -92,13 +90,11 @@ public class AccountCommandController {
     }
 
     @PostMapping("/close")
-    public ResponseEntity<Map<String, String>> closeAccount(@RequestBody CloseAccountRequest request)
-    {
-        com.bank.event_driven_banking_system.command.commands.CloseAccountCommand command =
-                new com.bank.event_driven_banking_system.command.commands.CloseAccountCommand(
-                        request.getAccountId(),
-                        request.getReason()
-                );
+    public ResponseEntity<Map<String, String>> closeAccount(@RequestBody CloseAccountRequest request) {
+        CloseAccountCommand command = new CloseAccountCommand(
+                request.getAccountId(),
+                request.getReason()
+        );
 
         commandGateway.sendAndWait(command);
 
@@ -108,4 +104,3 @@ public class AccountCommandController {
         ));
     }
 }
-
